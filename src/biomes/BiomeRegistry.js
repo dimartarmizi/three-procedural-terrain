@@ -1,73 +1,117 @@
+import * as THREE from 'three';
+
 export const Biomes = {
 	OCEAN: {
 		id: 'ocean',
-		color: 0x4a4a4a, // Stony gray instead of blue
-		minHeight: -Infinity,
-		maxHeight: 5,
-		temperature: 0.5,
-		moisture: 0.8
+		color: new THREE.Color(0x3f76e4),
+		idealHeight: 0,
+		idealTemp: 0.5,
+		idealMoisture: 0.8,
+		heightParams: { base: -10, roughness: 0.2, scale: 0.5 }
 	},
 	BEACH: {
 		id: 'beach',
-		color: 0x8b8378, // Muted stony/sandy color
-		minHeight: 5,
-		maxHeight: 10,
-		temperature: 0.7,
-		moisture: 0.4
+		color: new THREE.Color(0xf2e6b5),
+		idealHeight: 7,
+		idealTemp: 0.7,
+		idealMoisture: 0.4,
+		heightParams: { base: 2, roughness: 0.1, scale: 1.0 }
 	},
 	FOREST: {
 		id: 'forest',
-		color: 0x228b22,
-		minHeight: 10,
-		maxHeight: 60,
-		temperature: 0.5,
-		moisture: 0.7
+		color: new THREE.Color(0x056621),
+		idealHeight: 30,
+		idealTemp: 0.5,
+		idealMoisture: 0.8,
+		heightParams: { base: 20, roughness: 0.5, scale: 1.0 }
 	},
 	PLAINS: {
 		id: 'plains',
-		color: 0x7cfc00,
-		minHeight: 10,
-		maxHeight: 60,
-		temperature: 0.6,
-		moisture: 0.4
+		color: new THREE.Color(0x8db360),
+		idealHeight: 25,
+		idealTemp: 0.6,
+		idealMoisture: 0.4,
+		heightParams: { base: 15, roughness: 0.3, scale: 0.8 }
 	},
 	DESERT: {
 		id: 'desert',
-		color: 0xedc9af,
-		minHeight: 10,
-		maxHeight: 80,
-		temperature: 0.9,
-		moisture: 0.1
+		color: new THREE.Color(0xfae979),
+		idealHeight: 40,
+		idealTemp: 0.9,
+		idealMoisture: 0.1,
+		heightParams: { base: 30, roughness: 0.4, scale: 0.5 }
 	},
 	MOUNTAIN: {
 		id: 'mountain',
-		color: 0x808080,
-		minHeight: 60,
-		maxHeight: 150,
-		temperature: 0.3,
-		moisture: 0.3
+		color: new THREE.Color(0x717171),
+		idealHeight: 100,
+		idealTemp: 0.3,
+		idealMoisture: 0.3,
+		heightParams: { base: 80, roughness: 1.5, scale: 2.0 }
 	},
 	SNOW: {
 		id: 'snow',
-		color: 0xffffff,
-		minHeight: 150,
-		maxHeight: Infinity,
-		temperature: 0.0,
-		moisture: 0.5
+		color: new THREE.Color(0xffffff),
+		idealHeight: 180,
+		idealTemp: 0.0,
+		idealMoisture: 0.5,
+		heightParams: { base: 120, roughness: 1.2, scale: 1.5 }
 	}
 };
 
 export class BiomeRegistry {
 	static getBiome(height, moisture, temperature) {
-		if (height < 5) return Biomes.OCEAN;
-		if (height < 10) return Biomes.BEACH;
+		const weights = this.getBiomeWeights(height, moisture, temperature);
+		let bestBiome = weights[0].biome;
+		let maxWeight = weights[0].weight;
 
-		if (height > 150) return Biomes.SNOW;
-		if (height > 80) return Biomes.MOUNTAIN;
+		for (let i = 1; i < weights.length; i++) {
+			if (weights[i].weight > maxWeight) {
+				maxWeight = weights[i].weight;
+				bestBiome = weights[i].biome;
+			}
+		}
+		return bestBiome;
+	}
 
-		if (temperature > 0.8) return Biomes.DESERT;
-		if (moisture > 0.6) return Biomes.FOREST;
+	static getBiomeWeights(height, moisture, temperature) {
+		const weights = [];
+		let totalWeight = 0;
 
-		return Biomes.PLAINS;
+		for (const key in Biomes) {
+			const b = Biomes[key];
+
+			const hDist = height !== null ? Math.abs(height - b.idealHeight) / 50 : 0;
+			const tDist = Math.abs(temperature - b.idealTemp);
+			const mDist = Math.abs(moisture - b.idealMoisture);
+
+			// If height is null, we only care about temp and moisture (for height generation)
+			const dist = Math.sqrt(hDist * hDist + tDist * tDist + mDist * mDist) + 0.001;
+			let weight = 1.0 / Math.pow(dist, 4);
+
+			// Special hard constraints only if height is known
+			if (height !== null) {
+				if (height < 2 && b.id !== 'ocean') weight *= 0.01;
+				if (height > 160 && b.id !== 'snow') weight *= 0.01;
+			}
+
+			weights.push({ biome: b, weight });
+			totalWeight += weight;
+		}
+
+		return weights.map(w => ({ ...w, weight: w.weight / totalWeight }));
+	}
+
+	static getBlendedColor(height, moisture, temperature) {
+		const weights = this.getBiomeWeights(height, moisture, temperature);
+		const resultColor = new THREE.Color(0, 0, 0);
+
+		for (const w of weights) {
+			resultColor.r += w.biome.color.r * w.weight;
+			resultColor.g += w.biome.color.g * w.weight;
+			resultColor.b += w.biome.color.b * w.weight;
+		}
+
+		return resultColor;
 	}
 }

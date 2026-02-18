@@ -32,9 +32,8 @@ export class TerrainMeshBuilder {
 
 			const temp = this.biomeMap.getTemperature(x, z);
 			const moisture = this.biomeMap.getMoisture(x, z);
-			const biome = BiomeRegistry.getBiome(h, moisture, temp);
-
-			const color = new THREE.Color(biome.color);
+			
+			const color = BiomeRegistry.getBlendedColor(h, moisture, temp);
 			colors[i] = color.r;
 			colors[i + 1] = color.g;
 			colors[i + 2] = color.b;

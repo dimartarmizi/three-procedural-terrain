@@ -4,6 +4,8 @@ import { eventBus } from './EventBus.js';
 import { TimeSystem } from '../environment/TimeSystem.js';
 import { SkySystem } from '../environment/SkySystem.js';
 import { WaterSystem } from '../environment/WaterSystem.js';
+import { BiomeMap } from '../terrain/BiomeMap.js';
+import { BiomeRegistry } from '../biomes/BiomeRegistry.js';
 
 export class World {
 	constructor(scene, camera, settings) {
@@ -16,6 +18,7 @@ export class World {
 		this.timeSystem = new TimeSystem();
 		this.skySystem = null;
 		this.waterSystem = null;
+		this.biomeMap = new BiomeMap(settings.seed);
 	}
 
 	init() {
@@ -58,6 +61,7 @@ export class World {
 	setupEventListeners() {
 		eventBus.on('settingsChanged', (newSettings) => {
 			this.settings = newSettings;
+			this.biomeMap = new BiomeMap(newSettings.seed);
 			this.chunkManager.updateSettings(newSettings);
 		});
 	}
@@ -87,7 +91,17 @@ export class World {
 		// Update HUD
 		const timeHud = document.getElementById('time');
 		if (timeHud) timeHud.innerText = `Time: ${this.timeSystem.getTimeString()}`;
+		
 		const coordsHud = document.getElementById('coords');
 		if (coordsHud) coordsHud.innerText = `X: ${playerPosition.x.toFixed(0)}, Z: ${playerPosition.z.toFixed(0)}`;
+
+		const biomeHud = document.getElementById('biome');
+		if (biomeHud) {
+			const temp = this.biomeMap.getTemperature(playerPosition.x, playerPosition.z);
+			const moisture = this.biomeMap.getMoisture(playerPosition.x, playerPosition.z);
+			const height = this.chunkManager.heightGenerator.getHeight(playerPosition.x, playerPosition.z);
+			const biome = BiomeRegistry.getBiome(height, moisture, temp);
+			biomeHud.innerText = `Biome: ${biome.id.toUpperCase()}`;
+		}
 	}
 }
