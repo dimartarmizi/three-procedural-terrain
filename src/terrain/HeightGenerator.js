@@ -23,33 +23,30 @@ export class HeightGenerator {
 		const temp = this.biomeMap.getTemperature(x, z);
 		const moisture = this.biomeMap.getMoisture(x, z);
 
-		// Get weights based only on temp/moisture (height=null)
 		const weights = BiomeRegistry.getBiomeWeights(null, moisture, temp);
 
 		let finalHeight = 0;
 
 		for (const w of weights) {
-			if (w.weight < 0.001) continue; // Optimization: skip negligible biomes
-			
+			if (w.weight < 0.001) continue;
+
 			const params = w.biome.heightParams;
-			
-			// Base height for this biome
+
 			const base = this.baseNoise.fbm(
-				x * 0.001 * sMult * params.scale, 
-				z * 0.001 * sMult * params.scale, 
+				x * 0.001 * sMult * params.scale,
+				z * 0.001 * sMult * params.scale,
 				4, 0.5, 2
 			);
-			
-			// Biome specific mountain/roughness
+
 			const mtn = this.mountainNoise.fbm(
-				x * 0.003 * sMult * params.scale, 
-				z * 0.003 * sMult * params.scale, 
+				x * 0.003 * sMult * params.scale,
+				z * 0.003 * sMult * params.scale,
 				6, 0.5, 2
 			);
-			
+
 			const detail = this.detailNoise.fbm(
-				x * 0.015 * sMult * params.scale, 
-				z * 0.015 * sMult * params.scale, 
+				x * 0.015 * sMult * params.scale,
+				z * 0.015 * sMult * params.scale,
 				2, 0.5, 2
 			);
 

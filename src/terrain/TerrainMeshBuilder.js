@@ -8,7 +8,7 @@ export class TerrainMeshBuilder {
 		this.biomeMap = new BiomeMap(seed);
 		this.material = new THREE.MeshStandardMaterial({
 			vertexColors: true,
-			flatShading: false, // Changed to false for smoother surface
+			flatShading: false,
 			roughness: 0.7,
 			metalness: 0.1
 		});
@@ -29,7 +29,7 @@ export class TerrainMeshBuilder {
 
 			const { h, temp, moisture } = this.heightGenerator.getData(x, z);
 			vertices[i + 1] = h;
-			
+
 			const color = BiomeRegistry.getBlendedColor(h, moisture, temp);
 			colors[i] = color.r;
 			colors[i + 1] = color.g;

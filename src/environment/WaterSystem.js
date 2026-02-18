@@ -16,12 +16,11 @@ export class WaterSystem {
 
 		this.water = new THREE.Mesh(geo, mat);
 		this.water.rotation.x = -Math.PI / 2;
-		this.water.position.y = 5; // Ocean level
+		this.water.position.y = 5;
 		this.scene.add(this.water);
 	}
 
 	update(deltaTime, playerPosition) {
-		// Keep water centered on player
 		this.water.position.x = playerPosition.x;
 		this.water.position.z = playerPosition.z;
 	}

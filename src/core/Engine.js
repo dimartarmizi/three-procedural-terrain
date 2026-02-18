@@ -52,7 +52,7 @@ export class Engine {
 
 	setupScene() {
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color(0x87ceeb); // Sky blue
+		this.scene.background = new THREE.Color(0x87ceeb);
 		this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0002);
 	}
 
@@ -84,7 +84,7 @@ export class Engine {
 
 	setupStats() {
 		this.stats = new Stats();
-		this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+		this.stats.showPanel(0);
 		document.body.appendChild(this.stats.dom);
 	}
 
@@ -126,8 +126,6 @@ export class Engine {
 		lightFolder.add(this.settings, 'shadows').name('Enable Shadows').onChange((v) => {
 			if (this.world && this.world.sunLight) {
 				this.world.sunLight.castShadow = v;
-				// Terrain and vegetation already have cast/receive set, 
-				// toggling the light's castShadow is enough.
 			}
 		});
 
@@ -179,8 +177,7 @@ export class Engine {
 		const deltaTime = this.clock.getDelta();
 
 		if (this.controls) this.controls.update();
-		
-		// Use controls target for chunk loading if orbiting, otherwise camera position
+
 		const focusPosition = this.controls ? this.controls.target : this.camera.position;
 		if (this.world) this.world.update(deltaTime, focusPosition);
 

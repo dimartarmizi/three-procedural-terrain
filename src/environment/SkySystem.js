@@ -6,7 +6,6 @@ export class SkySystem {
 		this.sky = null;
 		this.sun = new THREE.Vector3();
 
-		// Simple gradient sky using a large sphere
 		const geo = new THREE.SphereGeometry(5000, 32, 32);
 		const mat = new THREE.ShaderMaterial({
 			uniforms: {
@@ -39,7 +38,6 @@ export class SkySystem {
         varying vec3 vWorldPosition;
         varying vec2 vUv;
 
-        // Simple noise for clouds
         float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
         float noise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p);
@@ -52,7 +50,6 @@ export class SkySystem {
           float h = normalize( vWorldPosition + offset ).y;
           vec3 skyColor = mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) );
           
-          // Clouds
           float n = noise(vWorldPosition.xz * cloudScale + time * 0.01);
           n += noise(vWorldPosition.xz * cloudScale * 2.1 + time * 0.02) * 0.5;
           float cloud = smoothstep(0.4, 0.8, n) * cloudIntensity * max(h, 0.0);
@@ -69,7 +66,6 @@ export class SkySystem {
 
 	update(time, deltaTime) {
 		this.sky.material.uniforms.time.value += deltaTime;
-		// time is 0-24
 		const angle = (time / 24) * Math.PI * 2 - Math.PI / 2;
 		this.sun.set(
 			Math.cos(angle),
@@ -80,7 +76,6 @@ export class SkySystem {
 		const isNight = time < 6 || time > 18;
 		const intensity = isNight ? 0.1 : Math.sin((time - 6) / 12 * Math.PI);
 
-		// Update sky colors based on time
 		const top = this.sky.material.uniforms.topColor.value;
 		const bot = this.sky.material.uniforms.bottomColor.value;
 

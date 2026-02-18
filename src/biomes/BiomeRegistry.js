@@ -88,7 +88,6 @@ export class BiomeRegistry {
 			const distSq = hDist * hDist + tDist * tDist + mDist * mDist + 0.0001;
 			let weight = 1.0 / (distSq * distSq);
 
-			// Special hard constraints only if height is known
 			if (height !== null) {
 				if (height < 2 && b.id !== 'ocean') weight *= 0.01;
 				else if (height > 160 && b.id !== 'snow') weight *= 0.01;
@@ -98,7 +97,6 @@ export class BiomeRegistry {
 			totalWeight += weight;
 		}
 
-		// Pre-calculate weight factor
 		const invTotalWeight = 1.0 / totalWeight;
 		for (let i = 0; i < weights.length; i++) {
 			weights[i].weight *= invTotalWeight;

@@ -16,7 +16,6 @@ export class SeededRandom {
 		return hash;
 	}
 
-	// mulberry32
 	next() {
 		let t = this.seed += 0x6D2B79F5;
 		t = Math.imul(t ^ t >>> 15, t | 1);

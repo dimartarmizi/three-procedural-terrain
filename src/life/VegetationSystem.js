@@ -11,7 +11,6 @@ export class VegetationSystem {
 		this.seed = seed;
 		this.settings = settings;
 
-		// Materials
 		this.mats = {
 			trunk: new THREE.MeshStandardMaterial({ color: 0x4d342c, flatShading: true }),
 			leaves: new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true }),
@@ -21,7 +20,6 @@ export class VegetationSystem {
 			shrub: new THREE.MeshStandardMaterial({ color: 0x40916c, flatShading: true })
 		};
 
-		// Geometries
 		this.geos = {
 			trunk: new THREE.CylinderGeometry(0.15, 0.2, 2, 6).toNonIndexed(),
 			oak: new THREE.IcosahedronGeometry(1.5, 0).toNonIndexed(),
@@ -33,7 +31,6 @@ export class VegetationSystem {
 			palmTrunk: new THREE.CylinderGeometry(0.1, 0.25, 3.5, 6).toNonIndexed()
 		};
 
-		// Fix offsets
 		this.geos.trunk.translate(0, 1, 0);
 		this.geos.oak.translate(0, 2.5, 0);
 		this.geos.poplar.translate(0, 3, 0);
@@ -57,23 +54,19 @@ export class VegetationSystem {
 		const leaves = [];
 		const numLeaves = 8;
 		for (let i = 0; i < numLeaves; i++) {
-			// Create a leaf from 3 segments to mimic a curve
 			const leafGroup = [];
 
-			// Segment 1 (Inner)
 			const s1 = new THREE.BoxGeometry(1, 0.1, 0.4).toNonIndexed();
 			s1.translate(0.5, 0, 0);
 			s1.rotateZ(0.2);
 			leafGroup.push(s1);
 
-			// Segment 2 (Middle)
 			const s2 = new THREE.BoxGeometry(1, 0.1, 0.35).toNonIndexed();
 			s2.translate(0.5, 0, 0);
 			s2.rotateZ(-0.3);
 			s2.translate(1, 0.2, 0);
 			leafGroup.push(s2);
 
-			// Segment 3 (Outer)
 			const s3 = new THREE.BoxGeometry(1, 0.1, 0.25).toNonIndexed();
 			s3.translate(0.5, 0, 0);
 			s3.rotateZ(-0.6);
@@ -119,13 +112,12 @@ export class VegetationSystem {
 	}
 
 	spawnForChunk(chunkKey, cx, cz, chunkSize) {
-		// Avoid duplicate spawning for the same coordinate
 		if (this.chunkVegetation.has(chunkKey)) return;
 
 		const rng = new SeededRandom(this.seed + '_' + chunkKey);
 		const count = this.settings.treeDensity || 50;
 
-		const speciesInChunk = new Map(); // speciesName -> { trunks, leaves, count }
+		const speciesInChunk = new Map();
 
 		const matrix = new THREE.Matrix4();
 		const position = new THREE.Vector3();
@@ -139,7 +131,6 @@ export class VegetationSystem {
 			const { h, temp, moisture } = this.heightGenerator.getData(rx, rz);
 			const biome = BiomeRegistry.getBiome(h, moisture, temp);
 
-			// Decide species based on biome
 			let speciesName = null;
 			let isShrub = false;
 
@@ -216,8 +207,6 @@ export class VegetationSystem {
 			const meshes = this.chunkVegetation.get(chunkKey);
 			meshes.forEach(m => {
 				this.scene.remove(m);
-				// We don't dispose global geoms/mats here, 
-				// but the InstancedMesh itself should be removed.
 			});
 			this.chunkVegetation.delete(chunkKey);
 		}

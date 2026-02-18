@@ -35,7 +35,6 @@ export class World {
 		this.sunLight = new THREE.DirectionalLight(0xffffff, this.settings.sunIntensity || 1.0);
 		this.sunLight.castShadow = this.settings.shadows !== undefined ? this.settings.shadows : true;
 
-		// Configure high quality shadows that cover the view area
 		this.sunLight.shadow.mapSize.set(2048, 2048);
 		this.sunLight.shadow.camera.left = -200;
 		this.sunLight.shadow.camera.right = 200;
@@ -43,7 +42,7 @@ export class World {
 		this.sunLight.shadow.camera.bottom = -200;
 		this.sunLight.shadow.camera.near = 1;
 		this.sunLight.shadow.camera.far = 1000;
-		this.sunLight.shadow.bias = -0.0005; // Reduce shadow acne
+		this.sunLight.shadow.bias = -0.0005;
 
 		this.scene.add(this.sunLight);
 		this.scene.add(this.sunLight.target);
@@ -70,7 +69,6 @@ export class World {
 		const time = this.timeSystem.update(deltaTime);
 		const env = this.skySystem.update(time, deltaTime);
 
-		// Update sun to follow player and maintain direction
 		const sunDist = 500;
 		this.sunLight.position.set(
 			playerPosition.x + env.sunDirection.x * sunDist,
@@ -88,10 +86,9 @@ export class World {
 			this.waterSystem.update(deltaTime, playerPosition);
 		}
 
-		// Update HUD
 		const timeHud = document.getElementById('time');
 		if (timeHud) timeHud.innerText = `Time: ${this.timeSystem.getTimeString()}`;
-		
+
 		const coordsHud = document.getElementById('coords');
 		if (coordsHud) coordsHud.innerText = `X: ${playerPosition.x.toFixed(0)}, Z: ${playerPosition.z.toFixed(0)}`;
 
