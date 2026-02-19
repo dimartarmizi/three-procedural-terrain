@@ -4,6 +4,7 @@ import Stats from 'stats.js';
 import GUI from 'lil-gui';
 import { World } from './World.js';
 import { eventBus } from './EventBus.js';
+import { Player } from './Player.js';
 
 export class Engine {
 	constructor() {
@@ -12,6 +13,7 @@ export class Engine {
 		this.camera = null;
 		this.renderer = null;
 		this.controls = null;
+		this.player = null;
 		this.stats = null;
 		this.gui = null;
 		this.clock = new THREE.Clock();
@@ -36,7 +38,8 @@ export class Engine {
 			cloudCoverage: 0.6,
 			cloudBase: 120,
 			cloudThickness: 80,
-			shadows: true
+			shadows: true,
+			firstPerson: false
 		};
 
 		this.settings = this.loadSettings();
@@ -120,6 +123,37 @@ export class Engine {
 		this.controls.screenSpacePanning = false;
 		this.controls.enablePan = true;
 		this.controls.enableZoom = true;
+
+		this.player = new Player(this.camera, this.renderer.domElement, null);
+
+		const instruction = document.getElementById('fps-instruction');
+		if (this.settings.firstPerson) {
+			this.controls.enabled = false;
+			this.player.enabled = true;
+			if (instruction) instruction.style.display = 'block';
+		} else {
+			this.controls.enabled = true;
+			this.player.enabled = false;
+			if (instruction) instruction.style.display = 'none';
+		}
+	}
+
+	updateControlState() {
+		const instruction = document.getElementById('fps-instruction');
+		if (this.settings.firstPerson) {
+			this.controls.enabled = false;
+			this.player.enabled = true;
+			if (instruction) instruction.style.display = 'block';
+		} else {
+			this.controls.enabled = true;
+			this.player.enabled = false;
+			if (instruction) instruction.style.display = 'none';
+
+			const dir = new THREE.Vector3(0, 0, -1);
+			dir.applyQuaternion(this.camera.quaternion);
+			this.controls.target.copy(this.camera.position).add(dir.multiplyScalar(10));
+			this.controls.update();
+		}
 	}
 
 	setupStats() {
@@ -143,6 +177,11 @@ export class Engine {
 		worldFolder.add(this.settings, 'seed').name('Seed').onFinishChange(() => {
 			this.saveSettings();
 			eventBus.emit('settingsChanged', this.settings);
+		});
+		worldFolder.add(this.settings, 'firstPerson').name('First Person Mode').onChange((v) => {
+			this.settings.firstPerson = v;
+			this.updateControlState();
+			this.saveSettings();
 		});
 
 		const envFolder = this.gui.addFolder('Environment');
@@ -244,6 +283,7 @@ export class Engine {
 	setupWorld() {
 		this.world = new World(this.scene, this.camera, this.settings);
 		this.world.init();
+		this.player.world = this.world;
 	}
 
 	setupEventListeners() {
@@ -260,27 +300,34 @@ export class Engine {
 		this.stats.begin();
 		const deltaTime = this.clock.getDelta();
 
-		if (this.controls) this.controls.update();
+		if (this.settings.firstPerson) {
+			this.player.update(deltaTime);
+		} else {
+			if (this.controls) this.controls.update();
+		}
 
 		if (this.world && this.world.chunkManager && this.world.chunkManager.heightGenerator) {
 			const hg = this.world.chunkManager.heightGenerator;
 			const clearance = 2;
-			if (this.controls) {
-				const t = this.controls.target;
-				const terrainY = hg.getHeight(t.x, t.z);
-				const minTargetY = terrainY + clearance;
-				if (t.y < minTargetY) t.y = minTargetY;
-				const minCameraY = terrainY + clearance + 0.5;
-				if (this.camera.position.y < minCameraY) this.camera.position.y = minCameraY;
-			} else {
-				const p = this.camera.position;
-				const terrainY = hg.getHeight(p.x, p.z);
-				const minY = terrainY + clearance;
-				if (p.y < minY) p.y = minY;
+
+			if (!this.settings.firstPerson) {
+				if (this.controls) {
+					const t = this.controls.target;
+					const terrainY = hg.getHeight(t.x, t.z);
+					const minTargetY = terrainY + clearance;
+					if (t.y < minTargetY) t.y = minTargetY;
+					const minCameraY = terrainY + clearance + 0.5;
+					if (this.camera.position.y < minCameraY) this.camera.position.y = minCameraY;
+				} else {
+					const p = this.camera.position;
+					const terrainY = hg.getHeight(p.x, p.z);
+					const minY = terrainY + clearance;
+					if (p.y < minY) p.y = minY;
+				}
 			}
 		}
 
-		const focusPosition = this.controls ? this.controls.target : this.camera.position;
+		const focusPosition = this.settings.firstPerson ? this.camera.position : (this.controls ? this.controls.target : this.camera.position);
 		if (this.world) this.world.update(deltaTime, focusPosition);
 
 		this.renderer.render(this.scene, this.camera);

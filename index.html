@@ -25,6 +25,22 @@
 			pointer-events: none;
 		}
 
+		#fps-instruction {
+			position: absolute;
+			bottom: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: white;
+			font-family: 'Inter', sans-serif;
+			text-shadow: 1px 1px 2px black;
+			font-size: 16px;
+			background: rgba(0, 0, 0, 0.5);
+			padding: 10px 20px;
+			border-radius: 5px;
+			display: none;
+			pointer-events: none;
+		}
+
 		.hud {
 			color: white;
 			font-family: 'Inter', sans-serif;
@@ -47,6 +63,7 @@
 			<div id="time">Time: -</div>
 		</div>
 	</div>
+	<div id="fps-instruction">Click to capture mouse (ESC to exit) | WASD to Walk | SPACE to Jump</div>
 	<script type="module" src="/src/main.js"></script>
 </body>
 
