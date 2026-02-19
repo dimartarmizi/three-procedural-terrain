@@ -92,15 +92,18 @@ export class Engine {
 		this.camera = new THREE.PerspectiveCamera(
 			75,
 			window.innerWidth / window.innerHeight,
-			0.1,
-			10000
+			0.5,
+			20000
 		);
 		this.camera.position.set(100, 100, 100);
 		this.camera.lookAt(0, 0, 0);
 	}
 
 	setupRenderer() {
-		this.renderer = new THREE.WebGLRenderer({ antialias: true });
+		this.renderer = new THREE.WebGLRenderer({ 
+			antialias: true,
+			logarithmicDepthBuffer: true
+		});
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 		this.renderer.shadowMap.enabled = true;
